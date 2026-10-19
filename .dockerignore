@@ -1,0 +1,8 @@
+**/node_modules
+**/dist
+!scorm-engine/dist
+scorm-engine/dist
+**/.vite
+**/*.log
+.env
+.git

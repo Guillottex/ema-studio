@@ -1,0 +1,66 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html, body, #root { height: 100%; }
+  body { @apply bg-[#f6f9fc] text-[#3f3f3f] antialiased dark:bg-slate-950 dark:text-slate-200; font-family: Poppins, system-ui, 'Segoe UI', sans-serif; }
+  h1, h2, h3, .font-display { font-family: Outfit, Poppins, system-ui, sans-serif; letter-spacing: -0.01em; }
+  ::selection { @apply bg-brand-200 dark:bg-brand-800; }
+  * { scrollbar-width: thin; scrollbar-color: rgb(148 163 184 / .5) transparent; }
+}
+
+@layer components {
+  .btn { @apply inline-flex items-center justify-center gap-2 rounded-full px-4 h-9 text-sm font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-1 disabled:opacity-50 disabled:pointer-events-none whitespace-nowrap select-none dark:focus-visible:ring-offset-slate-900; }
+  .btn-sm { @apply h-8 px-2.5 text-[13px]; }
+  .btn-xs { @apply h-7 px-2.5 text-xs rounded-full; }
+  .btn-lg { @apply h-11 px-5 text-base; }
+  .btn-primary { @apply bg-brand-600 text-white hover:bg-brand-700 shadow-sm shadow-brand-900/20 dark:bg-sky-400 dark:text-brand-900 dark:hover:bg-sky-300; }
+  .btn-secondary { @apply bg-white text-slate-700 border border-slate-300 hover:bg-slate-50 dark:bg-slate-800 dark:text-slate-200 dark:border-slate-700 dark:hover:bg-slate-700; }
+  .btn-ghost { @apply text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800; }
+  .btn-danger { @apply bg-red-600 text-white hover:bg-red-700; }
+  .btn-success { @apply bg-emerald-600 text-white hover:bg-emerald-700; }
+  .icon-btn { @apply inline-flex items-center justify-center h-8 w-8 rounded-md text-slate-500 hover:bg-slate-100 hover:text-slate-800 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-100 transition-colors disabled:opacity-40 disabled:pointer-events-none focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500; }
+  .icon-btn.is-active { @apply bg-sky-100 text-brand-700 dark:bg-sky-900/40 dark:text-sky-300; }
+  .input { @apply w-full h-9 rounded-lg border border-slate-300 bg-white px-3 text-sm text-slate-800 placeholder:text-slate-400 focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-400/30 disabled:bg-slate-100 dark:bg-slate-900 dark:border-slate-700 dark:text-slate-100 dark:focus:border-brand-400; }
+  .input-sm { @apply h-8 text-[13px] px-2.5; }
+  textarea.input { @apply h-auto py-2 leading-relaxed; }
+  .label { @apply block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1; }
+  .card { @apply rounded-2xl border border-slate-200/80 bg-white shadow-panel dark:bg-slate-900 dark:border-slate-800; }
+  .badge { @apply inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium; }
+  .panel-title { @apply text-[11px] font-semibold uppercase tracking-wider text-brand-600/70 dark:text-sky-300/80; }
+  .divider { @apply border-t border-slate-200 dark:border-slate-800; }
+  .kbd { @apply rounded border border-slate-300 bg-slate-50 px-1.5 py-0.5 font-mono text-[11px] text-slate-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300; }
+  .table-base { @apply w-full text-sm; }
+  .table-base th { @apply text-left text-xs font-semibold uppercase tracking-wide text-slate-500 px-4 py-2.5 bg-slate-50 dark:bg-slate-800/60 dark:text-slate-400; }
+  .table-base td { @apply px-4 py-3 border-t border-slate-100 dark:border-slate-800; }
+  .table-base tr:hover td { @apply bg-slate-50/70 dark:bg-slate-800/40; }
+}
+
+/* ---------- Editor: canvas ---------- */
+.editor-canvas-bg { background-color: #e9edf3; background-image: radial-gradient(#cbd5e1 1px, transparent 1px); background-size: 20px 20px; }
+.dark .editor-canvas-bg { background-color: #0b1220; background-image: radial-gradient(#1e293b 1px, transparent 1px); }
+.editor-stage { box-shadow: 0 10px 40px rgba(15,23,42,.18); }
+.editor-stage.show-grid::after { content: ''; position: absolute; inset: 0; pointer-events: none; z-index: 9998; background-image: linear-gradient(rgba(59,101,245,.08) 1px, transparent 1px), linear-gradient(90deg, rgba(59,101,245,.08) 1px, transparent 1px); background-size: 20px 20px; }
+.editor-comp { position: absolute; }
+.editor-comp > .ema-comp-inner { pointer-events: none; }
+.editor-comp.is-editing > .ema-comp-inner { pointer-events: auto; }
+.editor-comp.is-editing [contenteditable] { outline: none; cursor: text; }
+.editor-comp:hover:not(.is-selected) { outline: 1px dashed rgba(36,71,234,.7); outline-offset: 0; }
+.editor-comp.is-selected { outline: 2px solid #2447ea; outline-offset: 0; }
+.editor-comp.is-locked:hover { outline-color: #94a3b8; }
+.editor-comp.is-hidden-runtime { opacity: .55; }
+.editor-comp.is-hidden-runtime::after { content: 'Oculto al inicio'; position: absolute; top: -18px; right: 0; font: 600 10px Inter, sans-serif; background: #64748b; color: #fff; padding: 1px 5px; border-radius: 3px; }
+.editor-comp.has-condition::before { content: 'Condicional'; position: absolute; top: -18px; left: 0; font: 600 10px Inter, sans-serif; background: #7c3aed; color: #fff; padding: 1px 5px; border-radius: 3px; z-index: 2; }
+.resize-handle { position: absolute; width: 10px; height: 10px; background: #fff; border: 2px solid #2447ea; border-radius: 2px; z-index: 9999; }
+.guide-v { position: absolute; top: 0; bottom: 0; width: 0; border-left: 1px solid #ec4899; pointer-events: none; z-index: 9999; }
+.guide-h { position: absolute; left: 0; right: 0; height: 0; border-top: 1px solid #ec4899; pointer-events: none; z-index: 9999; }
+.marquee { position: absolute; border: 1px solid #2447ea; background: rgba(36,71,234,.08); pointer-events: none; z-index: 9999; }
+.editor-flow .ema-comp { outline: 1px dashed transparent; }
+.editor-flow .ema-comp:hover { outline-color: rgba(36,71,234,.5); }
+.rte [contenteditable]:empty::before { content: attr(data-placeholder); color: #94a3b8; }
+.rte [contenteditable] ul { list-style: disc; padding-left: 1.4em; }
+.rte [contenteditable] ol { list-style: decimal; padding-left: 1.4em; }
+.rte [contenteditable] a { color: #2447ea; text-decoration: underline; }
+.rte [contenteditable] p { margin: 0 0 .4em; }
+@keyframes fadein { from { opacity: 0; } to { opacity: 1; } }

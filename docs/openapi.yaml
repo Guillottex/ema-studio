@@ -1,0 +1,949 @@
+openapi: 3.0.3
+info:
+  title: EMA Studio API
+  version: 1.0.0
+  description: |
+    API REST de EMA Studio (autoría e-learning y exportación SCORM 1.2).
+    Autenticación: `Authorization: Bearer <token>` obtenido en `POST /api/auth/login`.
+    Los errores devuelven `{ "error": "mensaje", "details": [...] }`.
+servers:
+  - url: /api
+components:
+  securitySchemes:
+    bearer:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+paths:
+  /auth/login:
+    post:
+      tags: ["Autenticación"]
+      summary: "Iniciar sesión (devuelve JWT)"
+      requestBody:
+        content:
+          application/json:
+            example: {"email":"admin@ema.local","password":"Admin123!"}
+      responses:
+        '200': { description: OK }
+  /auth/me:
+    get:
+      tags: ["Autenticación"]
+      summary: "Usuario actual"
+      security: [{ bearer: [] }]
+      responses:
+        '200': { description: OK }
+        '401': { description: No autenticado }
+  /auth/preferences:
+    put:
+      tags: ["Autenticación"]
+      summary: "Guardar preferencias (tema claro/oscuro)"
+      security: [{ bearer: [] }]
+      requestBody:
+        content:
+          application/json:
+            example: {"theme":"dark"}
+      responses:
+        '200': { description: OK }
+        '401': { description: No autenticado }
+  /auth/password:
+    post:
+      tags: ["Autenticación"]
+      summary: "Cambiar contraseña"
+      security: [{ bearer: [] }]
+      requestBody:
+        content:
+          application/json:
+            example: {"current":"...","next":"..."}
+      responses:
+        '200': { description: OK }
+        '401': { description: No autenticado }
+  /dashboard:
+    get:
+      tags: ["Dashboard"]
+      summary: "Estadísticas y últimos cursos"
+      security: [{ bearer: [] }]
+      responses:
+        '200': { description: OK }
+        '401': { description: No autenticado }
+  /search:
+    get:
+      tags: ["Búsqueda"]
+      summary: "Buscador global (cursos, módulos, lecciones, pantallas, plantillas, recursos, preguntas)"
+      security: [{ bearer: [] }]
+      parameters:
+        - { name: q, in: query, required: false, schema: { type: string } }
+      responses:
+        '200': { description: OK }
+        '401': { description: No autenticado }
+  /courses:
+    get:
+      tags: ["Cursos"]
+      summary: "Listar cursos"
+      security: [{ bearer: [] }]
+      parameters:
+        - { name: q, in: query, required: false, schema: { type: string } }
+        - { name: status, in: query, required: false, schema: { type: string } }
+        - { name: category, in: query, required: false, schema: { type: string } }
+      responses:
+        '200': { description: OK }
+        '401': { description: No autenticado }
+    post:
+      tags: ["Cursos"]
+      summary: "Crear curso (en blanco o desde plantilla: templateId)"
+      security: [{ bearer: [] }]
+      requestBody:
+        content:
+          application/json:
+            example: {"title":"Mi curso","categoryId":1}
+      responses:
+        '200': { description: OK }
+        '401': { description: No autenticado }
+  /courses/{id}:
+    get:
+      tags: ["Cursos"]
+      summary: "Detalle del curso + configuración"
+      security: [{ bearer: [] }]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string } }
+      responses:
+        '200': { description: OK }
+        '401': { description: No autenticado }
+    patch:
+      tags: ["Cursos"]
+      summary: "Actualizar metadatos (título, descripción, estado, etc.)"
+      security: [{ bearer: [] }]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string } }
+      requestBody:
+        content:
+          application/json:
+            example: {"status":"published"}
+      responses:
+        '200': { description: OK }
+        '401': { description: No autenticado }
+    delete:
+      tags: ["Cursos"]
+      summary: "Eliminar curso"
+      security: [{ bearer: [] }]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string } }
+      responses:
+        '200': { description: OK }
+        '401': { description: No autenticado }
+  /courses/{id}/settings:
+    put:
+      tags: ["Cursos"]
+      summary: "Configuración: tema, navegación, finalización, reanudación, logo"
+      security: [{ bearer: [] }]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string } }
+      requestBody:
+        content:
+          application/json:
+            example: {"navigation":{"mode":"linear"}}
+      responses:
+        '200': { description: OK }
+        '401': { description: No autenticado }
+  /courses/{id}/duplicate:
+    post:
+      tags: ["Cursos"]
+      summary: "Duplicar curso"
+      security: [{ bearer: [] }]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string } }
+      responses:
+        '200': { description: OK }
+        '401': { description: No autenticado }
+  /courses/{id}/tree:
+    get:
+      tags: ["Cursos"]
+      summary: "Árbol módulos/lecciones/pantallas"
+      security: [{ bearer: [] }]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string } }
+      responses:
+        '200': { description: OK }
+        '401': { description: No autenticado }
+  /courses/{id}/doc:
+    get:
+      tags: ["Cursos"]
+      summary: "Documento JSON completo del curso"
+      security: [{ bearer: [] }]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string } }
+      responses:
+        '200': { description: OK }
+        '401': { description: No autenticado }
+  /courses/{id}/structure:
+    put:
+      tags: ["Cursos"]
+      summary: "Reordenar / mover (drag & drop del árbol)"
+      security: [{ bearer: [] }]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string } }
+      requestBody:
+        content:
+          application/json:
+            example: {"modules":[{"id":"m1","lessons":[{"id":"l1","screens":["s1","s2"]}]}]}
+      responses:
+        '200': { description: OK }
+        '401': { description: No autenticado }
+  /courses/{id}/export-json:
+    get:
+      tags: ["Proyecto editable"]
+      summary: "Descargar proyecto .json (media=0 para no embeber recursos)"
+      security: [{ bearer: [] }]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string } }
+        - { name: media, in: query, required: false, schema: { type: string } }
+      responses:
+        '200': { description: OK }
+        '401': { description: No autenticado }
+  /courses/import:
+    post:
+      tags: ["Proyecto editable"]
+      summary: "Importar proyecto .json (multipart: file)"
+      security: [{ bearer: [] }]
+      responses:
+        '200': { description: OK }
+        '401': { description: No autenticado }
+  /courses/{id}/validate:
+    post:
+      tags: ["SCORM"]
+      summary: "Validar curso y paquete SCORM"
+      security: [{ bearer: [] }]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string } }
+      responses:
+        '200': { description: OK }
+        '401': { description: No autenticado }
+  /courses/{id}/export-scorm:
+    post:
+      tags: ["SCORM"]
+      summary: "Generar ZIP SCORM 1.2 (422 si hay errores)"
+      security: [{ bearer: [] }]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string } }
+      responses:
+        '200': { description: OK }
+        '401': { description: No autenticado }
+  /courses/{id}/exports:
+    get:
+      tags: ["SCORM"]
+      summary: "Historial de exportaciones"
+      security: [{ bearer: [] }]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string } }
+      responses:
+        '200': { description: OK }
+        '401': { description: No autenticado }
+  /exports/{exportId}/download:
+    get:
+      tags: ["SCORM"]
+      summary: "Descargar ZIP"
+      security: [{ bearer: [] }]
+      parameters:
+        - { name: exportId, in: path, required: true, schema: { type: string } }
+      responses:
+        '200': { description: OK }
+        '401': { description: No autenticado }
+  /exports/{exportId}:
+    delete:
+      tags: ["SCORM"]
+      summary: "Eliminar exportación"
+      security: [{ bearer: [] }]
+      parameters:
+        - { name: exportId, in: path, required: true, schema: { type: string } }
+      responses:
+        '200': { description: OK }
+        '401': { description: No autenticado }
+  /courses/{id}/preview-token:
+    post:
+      tags: ["SCORM"]
+      summary: "Token de previsualización (paquete servido al vuelo)"
+      security: [{ bearer: [] }]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string } }
+      responses:
+        '200': { description: OK }
+        '401': { description: No autenticado }
+  /preview/{token}/index.html:
+    get:
+      tags: ["SCORM"]
+      summary: "Paquete de previsualización (token en la URL)"
+      parameters:
+        - { name: token, in: path, required: true, schema: { type: string } }
+      responses:
+        '200': { description: OK }
+  /courses/{id}/versions:
+    get:
+      tags: ["Versiones"]
+      summary: "Listar versiones"
+      security: [{ bearer: [] }]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string } }
+      responses:
+        '200': { description: OK }
+        '401': { description: No autenticado }
+    post:
+      tags: ["Versiones"]
+      summary: "Crear versión (bump minor|major|custom|current)"
+      security: [{ bearer: [] }]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string } }
+      requestBody:
+        content:
+          application/json:
+            example: {"bump":"minor","notes":"Revisión"}
+      responses:
+        '200': { description: OK }
+        '401': { description: No autenticado }
+  /versions/{versionId}:
+    get:
+      tags: ["Versiones"]
+      summary: "Ver snapshot"
+      security: [{ bearer: [] }]
+      parameters:
+        - { name: versionId, in: path, required: true, schema: { type: string } }
+      responses:
+        '200': { description: OK }
+        '401': { description: No autenticado }
+    delete:
+      tags: ["Versiones"]
+      summary: "Eliminar versión"
+      security: [{ bearer: [] }]
+      parameters:
+        - { name: versionId, in: path, required: true, schema: { type: string } }
+      responses:
+        '200': { description: OK }
+        '401': { description: No autenticado }
+  /versions/{versionId}/restore:
+    post:
+      tags: ["Versiones"]
+      summary: "Restaurar versión (con respaldo automático)"
+      security: [{ bearer: [] }]
+      parameters:
+        - { name: versionId, in: path, required: true, schema: { type: string } }
+      responses:
+        '200': { description: OK }
+        '401': { description: No autenticado }
+  /versions/{versionId}/duplicate:
+    post:
+      tags: ["Versiones"]
+      summary: "Crear curso nuevo desde una versión"
+      security: [{ bearer: [] }]
+      parameters:
+        - { name: versionId, in: path, required: true, schema: { type: string } }
+      responses:
+        '200': { description: OK }
+        '401': { description: No autenticado }
+  /courses/{id}/modules:
+    post:
+      tags: ["Estructura"]
+      summary: "Crear módulo"
+      security: [{ bearer: [] }]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string } }
+      requestBody:
+        content:
+          application/json:
+            example: {"title":"Módulo 2"}
+      responses:
+        '200': { description: OK }
+        '401': { description: No autenticado }
+  /modules/{moduleId}:
+    patch:
+      tags: ["Estructura"]
+      summary: "Renombrar módulo"
+      security: [{ bearer: [] }]
+      parameters:
+        - { name: moduleId, in: path, required: true, schema: { type: string } }
+      requestBody:
+        content:
+          application/json:
+            example: {"title":"Nuevo nombre"}
+      responses:
+        '200': { description: OK }
+        '401': { description: No autenticado }
+    delete:
+      tags: ["Estructura"]
+      summary: "Eliminar módulo"
+      security: [{ bearer: [] }]
+      parameters:
+        - { name: moduleId, in: path, required: true, schema: { type: string } }
+      responses:
+        '200': { description: OK }
+        '401': { description: No autenticado }
+  /modules/{moduleId}/duplicate:
+    post:
+      tags: ["Estructura"]
+      summary: "Duplicar módulo"
+      security: [{ bearer: [] }]
+      parameters:
+        - { name: moduleId, in: path, required: true, schema: { type: string } }
+      responses:
+        '200': { description: OK }
+        '401': { description: No autenticado }
+  /modules/{moduleId}/lessons:
+    post:
+      tags: ["Estructura"]
+      summary: "Crear lección"
+      security: [{ bearer: [] }]
+      parameters:
+        - { name: moduleId, in: path, required: true, schema: { type: string } }
+      requestBody:
+        content:
+          application/json:
+            example: {"title":"Lección 2"}
+      responses:
+        '200': { description: OK }
+        '401': { description: No autenticado }
+  /lessons/{lessonId}:
+    patch:
+      tags: ["Estructura"]
+      summary: "Renombrar lección"
+      security: [{ bearer: [] }]
+      parameters:
+        - { name: lessonId, in: path, required: true, schema: { type: string } }
+      requestBody:
+        content:
+          application/json:
+            example: {"title":"..."}
+      responses:
+        '200': { description: OK }
+        '401': { description: No autenticado }
+    delete:
+      tags: ["Estructura"]
+      summary: "Eliminar lección"
+      security: [{ bearer: [] }]
+      parameters:
+        - { name: lessonId, in: path, required: true, schema: { type: string } }
+      responses:
+        '200': { description: OK }
+        '401': { description: No autenticado }
+  /lessons/{lessonId}/duplicate:
+    post:
+      tags: ["Estructura"]
+      summary: "Duplicar lección"
+      security: [{ bearer: [] }]
+      parameters:
+        - { name: lessonId, in: path, required: true, schema: { type: string } }
+      responses:
+        '200': { description: OK }
+        '401': { description: No autenticado }
+  /lessons/{lessonId}/screens:
+    post:
+      tags: ["Estructura"]
+      summary: "Crear pantalla (layout o templateId)"
+      security: [{ bearer: [] }]
+      parameters:
+        - { name: lessonId, in: path, required: true, schema: { type: string } }
+      requestBody:
+        content:
+          application/json:
+            example: {"title":"Nueva","layout":"two-columns"}
+      responses:
+        '200': { description: OK }
+        '401': { description: No autenticado }
+  /screens/{screenId}:
+    get:
+      tags: ["Pantallas"]
+      summary: "Pantalla con componentes (JSON)"
+      security: [{ bearer: [] }]
+      parameters:
+        - { name: screenId, in: path, required: true, schema: { type: string } }
+      responses:
+        '200': { description: OK }
+        '401': { description: No autenticado }
+    put:
+      tags: ["Pantallas"]
+      summary: "Guardado completo (auto-guardado del editor)"
+      security: [{ bearer: [] }]
+      parameters:
+        - { name: screenId, in: path, required: true, schema: { type: string } }
+      requestBody:
+        content:
+          application/json:
+            example: {"title":"...","height":675,"background":{},"settings":{},"tabletMode":"auto","mobileMode":"auto","components":[]}
+      responses:
+        '200': { description: OK }
+        '401': { description: No autenticado }
+    patch:
+      tags: ["Pantallas"]
+      summary: "Renombrar pantalla"
+      security: [{ bearer: [] }]
+      parameters:
+        - { name: screenId, in: path, required: true, schema: { type: string } }
+      requestBody:
+        content:
+          application/json:
+            example: {"title":"..."}
+      responses:
+        '200': { description: OK }
+        '401': { description: No autenticado }
+    delete:
+      tags: ["Pantallas"]
+      summary: "Eliminar pantalla"
+      security: [{ bearer: [] }]
+      parameters:
+        - { name: screenId, in: path, required: true, schema: { type: string } }
+      responses:
+        '200': { description: OK }
+        '401': { description: No autenticado }
+  /screens/{screenId}/duplicate:
+    post:
+      tags: ["Pantallas"]
+      summary: "Duplicar pantalla"
+      security: [{ bearer: [] }]
+      parameters:
+        - { name: screenId, in: path, required: true, schema: { type: string } }
+      responses:
+        '200': { description: OK }
+        '401': { description: No autenticado }
+  /layouts:
+    get:
+      tags: ["Plantillas y layouts"]
+      summary: "Layouts predefinidos (16)"
+      security: [{ bearer: [] }]
+      responses:
+        '200': { description: OK }
+        '401': { description: No autenticado }
+  /templates:
+    get:
+      tags: ["Plantillas y layouts"]
+      summary: "Listar plantillas (kind=course|screen)"
+      security: [{ bearer: [] }]
+      parameters:
+        - { name: kind, in: query, required: false, schema: { type: string } }
+      responses:
+        '200': { description: OK }
+        '401': { description: No autenticado }
+  /templates/{templateId}:
+    get:
+      tags: ["Plantillas y layouts"]
+      summary: "Ver plantilla"
+      security: [{ bearer: [] }]
+      parameters:
+        - { name: templateId, in: path, required: true, schema: { type: string } }
+      responses:
+        '200': { description: OK }
+        '401': { description: No autenticado }
+    patch:
+      tags: ["Plantillas y layouts"]
+      summary: "Renombrar plantilla"
+      security: [{ bearer: [] }]
+      parameters:
+        - { name: templateId, in: path, required: true, schema: { type: string } }
+      requestBody:
+        content:
+          application/json:
+            example: {"name":"..."}
+      responses:
+        '200': { description: OK }
+        '401': { description: No autenticado }
+    delete:
+      tags: ["Plantillas y layouts"]
+      summary: "Eliminar plantilla"
+      security: [{ bearer: [] }]
+      parameters:
+        - { name: templateId, in: path, required: true, schema: { type: string } }
+      responses:
+        '200': { description: OK }
+        '401': { description: No autenticado }
+  /templates/from-screen:
+    post:
+      tags: ["Plantillas y layouts"]
+      summary: "Guardar pantalla como plantilla"
+      security: [{ bearer: [] }]
+      requestBody:
+        content:
+          application/json:
+            example: {"screenId":"...","name":"Mi plantilla"}
+      responses:
+        '200': { description: OK }
+        '401': { description: No autenticado }
+  /templates/from-course:
+    post:
+      tags: ["Plantillas y layouts"]
+      summary: "Guardar curso como plantilla (admin)"
+      security: [{ bearer: [] }]
+      requestBody:
+        content:
+          application/json:
+            example: {"courseId":"...","name":"..."}
+      responses:
+        '200': { description: OK }
+        '401': { description: No autenticado }
+  /templates/{templateId}/duplicate:
+    post:
+      tags: ["Plantillas y layouts"]
+      summary: "Duplicar plantilla"
+      security: [{ bearer: [] }]
+      parameters:
+        - { name: templateId, in: path, required: true, schema: { type: string } }
+      responses:
+        '200': { description: OK }
+        '401': { description: No autenticado }
+  /themes:
+    get:
+      tags: ["Temas"]
+      summary: "Listar temas"
+      security: [{ bearer: [] }]
+      responses:
+        '200': { description: OK }
+        '401': { description: No autenticado }
+    post:
+      tags: ["Temas"]
+      summary: "Crear tema"
+      security: [{ bearer: [] }]
+      requestBody:
+        content:
+          application/json:
+            example: {"name":"Mi tema","data":{"colors":{"primary":"#0055aa"}}}
+      responses:
+        '200': { description: OK }
+        '401': { description: No autenticado }
+  /themes/{themeId}:
+    put:
+      tags: ["Temas"]
+      summary: "Actualizar tema personalizado"
+      security: [{ bearer: [] }]
+      parameters:
+        - { name: themeId, in: path, required: true, schema: { type: string } }
+      requestBody:
+        content:
+          application/json:
+            example: {"name":"...","data":{}}
+      responses:
+        '200': { description: OK }
+        '401': { description: No autenticado }
+    delete:
+      tags: ["Temas"]
+      summary: "Eliminar tema personalizado"
+      security: [{ bearer: [] }]
+      parameters:
+        - { name: themeId, in: path, required: true, schema: { type: string } }
+      responses:
+        '200': { description: OK }
+        '401': { description: No autenticado }
+  /media:
+    get:
+      tags: ["Biblioteca multimedia"]
+      summary: "Listar recursos (con uso)"
+      security: [{ bearer: [] }]
+      parameters:
+        - { name: q, in: query, required: false, schema: { type: string } }
+        - { name: kind, in: query, required: false, schema: { type: string } }
+      responses:
+        '200': { description: OK }
+        '401': { description: No autenticado }
+    post:
+      tags: ["Biblioteca multimedia"]
+      summary: "Subir archivos (multipart: files) JPG PNG SVG WEBP GIF MP4 MP3 PDF"
+      security: [{ bearer: [] }]
+      responses:
+        '200': { description: OK }
+        '401': { description: No autenticado }
+  /media/{mediaId}:
+    patch:
+      tags: ["Biblioteca multimedia"]
+      summary: "Renombrar recurso"
+      security: [{ bearer: [] }]
+      parameters:
+        - { name: mediaId, in: path, required: true, schema: { type: string } }
+      requestBody:
+        content:
+          application/json:
+            example: {"name":"..."}
+      responses:
+        '200': { description: OK }
+        '401': { description: No autenticado }
+    delete:
+      tags: ["Biblioteca multimedia"]
+      summary: "Eliminar recurso (409 si está en uso; force=1 para forzar)"
+      security: [{ bearer: [] }]
+      parameters:
+        - { name: mediaId, in: path, required: true, schema: { type: string } }
+        - { name: force, in: query, required: false, schema: { type: string } }
+      responses:
+        '200': { description: OK }
+        '401': { description: No autenticado }
+  /questions:
+    get:
+      tags: ["Preguntas"]
+      summary: "Banco de preguntas"
+      security: [{ bearer: [] }]
+      parameters:
+        - { name: q, in: query, required: false, schema: { type: string } }
+        - { name: type, in: query, required: false, schema: { type: string } }
+        - { name: category, in: query, required: false, schema: { type: string } }
+      responses:
+        '200': { description: OK }
+        '401': { description: No autenticado }
+    post:
+      tags: ["Preguntas"]
+      summary: "Crear pregunta"
+      security: [{ bearer: [] }]
+      requestBody:
+        content:
+          application/json:
+            example: {"type":"single","prompt":"¿...?","options":[{"text":"A","correct":true},{"text":"B"}],"points":1}
+      responses:
+        '200': { description: OK }
+        '401': { description: No autenticado }
+  /questions/{questionId}:
+    get:
+      tags: ["Preguntas"]
+      summary: "Ver pregunta"
+      security: [{ bearer: [] }]
+      parameters:
+        - { name: questionId, in: path, required: true, schema: { type: string } }
+      responses:
+        '200': { description: OK }
+        '401': { description: No autenticado }
+    put:
+      tags: ["Preguntas"]
+      summary: "Actualizar pregunta"
+      security: [{ bearer: [] }]
+      parameters:
+        - { name: questionId, in: path, required: true, schema: { type: string } }
+      responses:
+        '200': { description: OK }
+        '401': { description: No autenticado }
+    delete:
+      tags: ["Preguntas"]
+      summary: "Eliminar pregunta"
+      security: [{ bearer: [] }]
+      parameters:
+        - { name: questionId, in: path, required: true, schema: { type: string } }
+      responses:
+        '200': { description: OK }
+        '401': { description: No autenticado }
+  /questions/{questionId}/duplicate:
+    post:
+      tags: ["Preguntas"]
+      summary: "Duplicar pregunta"
+      security: [{ bearer: [] }]
+      parameters:
+        - { name: questionId, in: path, required: true, schema: { type: string } }
+      responses:
+        '200': { description: OK }
+        '401': { description: No autenticado }
+  /quizzes:
+    get:
+      tags: ["Preguntas"]
+      summary: "Evaluaciones del banco"
+      security: [{ bearer: [] }]
+      responses:
+        '200': { description: OK }
+        '401': { description: No autenticado }
+    post:
+      tags: ["Preguntas"]
+      summary: "Crear evaluación"
+      security: [{ bearer: [] }]
+      requestBody:
+        content:
+          application/json:
+            example: {"title":"...","settings":{"passingScore":70},"questionIds":[]}
+      responses:
+        '200': { description: OK }
+        '401': { description: No autenticado }
+  /quizzes/{quizId}:
+    get:
+      tags: ["Preguntas"]
+      summary: "Ver evaluación con preguntas"
+      security: [{ bearer: [] }]
+      parameters:
+        - { name: quizId, in: path, required: true, schema: { type: string } }
+      responses:
+        '200': { description: OK }
+        '401': { description: No autenticado }
+    put:
+      tags: ["Preguntas"]
+      summary: "Actualizar evaluación"
+      security: [{ bearer: [] }]
+      parameters:
+        - { name: quizId, in: path, required: true, schema: { type: string } }
+      responses:
+        '200': { description: OK }
+        '401': { description: No autenticado }
+    delete:
+      tags: ["Preguntas"]
+      summary: "Eliminar evaluación"
+      security: [{ bearer: [] }]
+      parameters:
+        - { name: quizId, in: path, required: true, schema: { type: string } }
+      responses:
+        '200': { description: OK }
+        '401': { description: No autenticado }
+  /quizzes/{quizId}/duplicate:
+    post:
+      tags: ["Preguntas"]
+      summary: "Duplicar evaluación"
+      security: [{ bearer: [] }]
+      parameters:
+        - { name: quizId, in: path, required: true, schema: { type: string } }
+      responses:
+        '200': { description: OK }
+        '401': { description: No autenticado }
+  /categories:
+    get:
+      tags: ["Categorías"]
+      summary: "Listar categorías"
+      security: [{ bearer: [] }]
+      responses:
+        '200': { description: OK }
+        '401': { description: No autenticado }
+    post:
+      tags: ["Categorías"]
+      summary: "Crear categoría"
+      security: [{ bearer: [] }]
+      requestBody:
+        content:
+          application/json:
+            example: {"name":"Seguridad","color":"#ea580c"}
+      responses:
+        '200': { description: OK }
+        '401': { description: No autenticado }
+  /categories/{categoryId}:
+    patch:
+      tags: ["Categorías"]
+      summary: "Actualizar categoría"
+      security: [{ bearer: [] }]
+      parameters:
+        - { name: categoryId, in: path, required: true, schema: { type: string } }
+      responses:
+        '200': { description: OK }
+        '401': { description: No autenticado }
+    delete:
+      tags: ["Categorías"]
+      summary: "Eliminar categoría"
+      security: [{ bearer: [] }]
+      parameters:
+        - { name: categoryId, in: path, required: true, schema: { type: string } }
+      responses:
+        '200': { description: OK }
+        '401': { description: No autenticado }
+  /users:
+    get:
+      tags: ["Usuarios"]
+      summary: "Listar usuarios (admin)"
+      security: [{ bearer: [] }]
+      responses:
+        '200': { description: OK }
+        '401': { description: No autenticado }
+    post:
+      tags: ["Usuarios"]
+      summary: "Crear usuario (admin)"
+      security: [{ bearer: [] }]
+      requestBody:
+        content:
+          application/json:
+            example: {"email":"autor@empresa.com","name":"Autor","password":"Clave1234","role":"author"}
+      responses:
+        '200': { description: OK }
+        '401': { description: No autenticado }
+  /users/roles:
+    get:
+      tags: ["Usuarios"]
+      summary: "Roles y permisos"
+      security: [{ bearer: [] }]
+      responses:
+        '200': { description: OK }
+        '401': { description: No autenticado }
+  /users/{userId}:
+    patch:
+      tags: ["Usuarios"]
+      summary: "Editar usuario (admin)"
+      security: [{ bearer: [] }]
+      parameters:
+        - { name: userId, in: path, required: true, schema: { type: string } }
+      responses:
+        '200': { description: OK }
+        '401': { description: No autenticado }
+    delete:
+      tags: ["Usuarios"]
+      summary: "Eliminar usuario (admin)"
+      security: [{ bearer: [] }]
+      parameters:
+        - { name: userId, in: path, required: true, schema: { type: string } }
+      responses:
+        '200': { description: OK }
+        '401': { description: No autenticado }
+  /settings:
+    get:
+      tags: ["Configuración"]
+      summary: "Configuración general y límites"
+      security: [{ bearer: [] }]
+      responses:
+        '200': { description: OK }
+        '401': { description: No autenticado }
+    put:
+      tags: ["Configuración"]
+      summary: "Guardar configuración de la organización (admin)"
+      security: [{ bearer: [] }]
+      requestBody:
+        content:
+          application/json:
+            example: {"organization":{"name":"EMA Servicios"}}
+      responses:
+        '200': { description: OK }
+        '401': { description: No autenticado }
+  /ai/status:
+    get:
+      tags: ["IA (preparado)"]
+      summary: "Estado del proveedor de IA"
+      security: [{ bearer: [] }]
+      responses:
+        '200': { description: OK }
+        '401': { description: No autenticado }
+  /ai/generate-course:
+    post:
+      tags: ["IA (preparado)"]
+      summary: "Generar curso (mode ai | structure)"
+      security: [{ bearer: [] }]
+      requestBody:
+        content:
+          application/json:
+            example: {"prompt":"Seguridad e higiene para empleados","duration":"2 horas","level":"básico","modules":5,"mode":"structure"}
+      responses:
+        '200': { description: OK }
+        '401': { description: No autenticado }
+  /ai/import-content:
+    post:
+      tags: ["IA (preparado)"]
+      summary: "Crear curso desde txt/md/docx/pdf o texto (multipart)"
+      security: [{ bearer: [] }]
+      responses:
+        '200': { description: OK }
+        '401': { description: No autenticado }
+  /ai/questions:
+    post:
+      tags: ["IA (preparado)"]
+      summary: "Generar preguntas a partir de un texto (requiere IA)"
+      security: [{ bearer: [] }]
+      requestBody:
+        content:
+          application/json:
+            example: {"text":"...","count":5}
+      responses:
+        '200': { description: OK }
+        '401': { description: No autenticado }
+  /ai/summarize:
+    post:
+      tags: ["IA (preparado)"]
+      summary: "Resumir contenido (requiere IA)"
+      security: [{ bearer: [] }]
+      requestBody:
+        content:
+          application/json:
+            example: {"text":"..."}
+      responses:
+        '200': { description: OK }
+        '401': { description: No autenticado }
+  /health:
+    get:
+      tags: ["Sistema"]
+      summary: "Estado del servicio"
+      responses:
+        '200': { description: OK }
